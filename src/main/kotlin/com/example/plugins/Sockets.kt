@@ -25,7 +25,7 @@ fun Application.configureSockets() {
  */
 object EchoApp {
     val selectorManager = ActorSelectorManager(Dispatchers.IO)
-    val DefaultPort = System.getenv("PORT")?.toInt() ?: 23567
+    val DefaultPort = (System.getenv("PORT") ?: "23567").toInt()
 
     object Server {
         fun exposeIpAddress(){
@@ -40,7 +40,7 @@ object EchoApp {
                 println("Echo Server listening at ${serverSocket.localAddress}")
                 while (true) {
                     val socket = serverSocket.accept()
-                    println("Accepted $socket")
+                    println("Accepted ${socket.remoteAddress}")
                     launch {
                         val read = socket.openReadChannel()
                         val write = socket.openWriteChannel(autoFlush = true)
