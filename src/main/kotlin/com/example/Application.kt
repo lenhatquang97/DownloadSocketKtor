@@ -5,7 +5,7 @@ import io.ktor.server.netty.*
 import com.example.plugins.*
 
 fun main() {
-    val port = System.getenv("PORT") ?: "23567"
+    val port = System.getenv("PORT") ?: "25000"
     embeddedServer(Netty, port = port.toInt()) {
         configureSockets()
         configureRouting()

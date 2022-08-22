@@ -31,7 +31,7 @@ object EchoApp {
         fun exposeIpAddress(){
             Socket().use { socket ->
                 socket.connect(InetSocketAddress("google.com", 80))
-                println("Your address and port are ${socket.localAddress.hostAddress} and $DefaultPort")
+                println("Your address and port are ${socket.localAddress}")
             }
         }
         fun start() {
