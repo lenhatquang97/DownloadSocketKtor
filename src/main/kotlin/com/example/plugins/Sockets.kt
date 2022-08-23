@@ -3,14 +3,16 @@ package com.example.plugins
 import com.example.FileFunction
 import com.example.SocketPort
 import io.ktor.network.selector.*
-import io.ktor.network.sockets.*
 import io.ktor.server.application.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import statusChangedEvent
+import java.io.DataInputStream
+import java.io.DataOutputStream
 import java.net.InetSocketAddress
+import java.net.ServerSocket
 import java.net.Socket
 
 fun Application.configureSockets() {
@@ -31,27 +33,28 @@ object DownloadUtility {
 
         fun start() {
             CoroutineScope(Dispatchers.IO).launch {
-                val serverSocket = aSocket(selectorManager).tcp().bind(port = SocketPort)
-                println("Socket Server listening at ${serverSocket.localAddress}")
+                val serverSocket = ServerSocket(SocketPort)
+                println("Socket Server listening at ${serverSocket.localSocketAddress}")
                 println("-------------------------------------------------------")
                 while (true) {
                     val socket = serverSocket.accept()
-                    println("Accepted client: ${socket.remoteAddress}")
-                    val read = socket.openReadChannel()
-                    val write = socket.openWriteChannel(autoFlush = true)
+                    println("Accepted client: ${socket.remoteSocketAddress}")
+                    val read = DataInputStream(socket.getInputStream())
+                    val write = DataOutputStream(socket.getOutputStream())
                     val fileFunction = FileFunction(socket)
                     var continued = true
                     try {
                         while (continued) {
-                            val result = read.readUTF8Line()
+                            val result = read.readLine()
                             if (result != null) {
+                                println(result)
                                 with(result) {
                                     when {
                                         contains("Hello") -> println("Welcome to our server!!!")
                                         contains("getFileInfo") -> {
                                             val fileName = substringAfter("getFileInfo ")
                                             val res = fileFunction.getFileInfo(fileName)
-                                            write.writeStringUtf8("$res\n")
+                                            write.write("$res\n".toByteArray())
                                         }
                                         contains("sendFile") -> {
                                             val fileName = substringAfter("sendFile ")

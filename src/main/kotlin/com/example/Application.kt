@@ -12,7 +12,6 @@ fun main() {
         CoroutineScope(Dispatchers.IO).launch {
             configureSockets()
         }
-
         //disable this so that we only use Socket for server demo
         //configureRouting()
     }.start(wait = true)

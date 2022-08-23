@@ -1,4 +1,4 @@
-import io.ktor.network.sockets.*
+import java.net.Socket
 
 interface StatusChanged {
     fun onStatusChanged(socket: Socket)
