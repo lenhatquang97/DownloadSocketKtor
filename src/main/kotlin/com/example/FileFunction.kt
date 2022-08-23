@@ -2,6 +2,7 @@ package com.example
 
 import StatusChanged
 import io.ktor.network.sockets.*
+import io.ktor.utils.io.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -16,29 +17,32 @@ class FileFunction {
         this.socket = socket
     }
     fun getFileInfo(fileName: String): String {
-        val file = File(fileName)
+        val file = File("files/$fileName")
         val fileSize = file.length()
         return "{fileSize: $fileSize, fileName: $fileName}"
     }
-    fun sendFile(socket: Socket, statusChangedEvent: StatusChanged) {
-        val filePath = ""
+    fun sendFile(socket: Socket, statusChangedEvent: StatusChanged, filePath: String, fileOutputStream: ByteWriteChannel) {
         var bytes = 0
-        val file = File(filePath)
-        val fileInputStream = FileInputStream(file)
-        val fileOutputStream = socket.openWriteChannel(autoFlush = true)
-        val scope = CoroutineScope(Dispatchers.IO)
-        val buffer = ByteArray(4 * 1024)
-        scope.launch {
-            fileOutputStream.writeLong(file.length())
-        }
-        while (fileInputStream.read(buffer).also { bytes = it } != -1) {
-            statusChangedEvent.onStatusChanged(socket)
-            if(status != "Downloading") break
+        val file = File("files/$filePath")
+        println(file.exists())
+        if(file.exists()){
+            val fileInputStream = FileInputStream(file)
+            val scope = CoroutineScope(Dispatchers.IO)
+            val buffer = ByteArray(4 * 1024)
             scope.launch {
-                fileOutputStream.writeFully(buffer, 0, bytes)
-                fileOutputStream.flush()
+                while (fileInputStream.read(buffer).also { bytes = it } > 0) {
+                    statusChangedEvent.onStatusChanged(socket)
+                    if(status != "Downloading") break
+                    fileOutputStream.writeFully(buffer, 0, bytes)
+                    fileOutputStream.flush()
+                }
+                fileInputStream.close()
+                fileOutputStream.close()
             }
+
         }
-        fileInputStream.close()
+
+
+
     }
 }
