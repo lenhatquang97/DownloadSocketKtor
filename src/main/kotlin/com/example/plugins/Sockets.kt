@@ -52,6 +52,7 @@ object EchoApp {
                         try {
                             while (continued) {
                                 val result = read.readUTF8Line()
+                                println(result)
                                 if(result != null){
                                     with(result){
                                         when{
@@ -60,8 +61,8 @@ object EchoApp {
                                             }
                                             contains("getFileInfo") -> {
                                                 val fileName = substringAfter("getFileInfo ")
-                                                val result = fileFunction.getFileInfo(fileName)
-                                                write.writeStringUtf8(result)
+                                                val res = fileFunction.getFileInfo(fileName)
+                                                write.writeStringUtf8(res)
                                             }
                                             equals("pause") -> {
                                                 statusChangedEvent.onPause(socket)
