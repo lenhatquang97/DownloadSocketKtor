@@ -1,5 +1,6 @@
 package com.example.plugins
 
+import com.example.FileFunction
 import com.example.SocketPort
 import io.ktor.network.selector.*
 import io.ktor.network.sockets.*
@@ -12,6 +13,8 @@ import java.util.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.request.*
+import kotlinx.coroutines.CoroutineScope
+import statusChangedEvent
 import java.net.InetSocketAddress
 import java.net.Socket
 
@@ -45,6 +48,7 @@ object EchoApp {
                     launch {
                         val read = socket.openReadChannel()
                         val write = socket.openWriteChannel(autoFlush = true)
+                        val fileFunction = FileFunction(socket)
                         var continued = true
                         try {
                             while (continued) {
@@ -52,20 +56,24 @@ object EchoApp {
                                 if(result != null){
                                     with(result){
                                         when{
-                                            contains("getFileInfo") ->{
-
+                                            contains("Hello") -> {
+                                                println("Welcome to our server!!!")
                                             }
-                                            contains("sendFile") -> {
-
+                                            contains("getFileInfo") -> {
+                                                val fileName = substringAfter("getFileInfo ")
+                                                val result = fileFunction.getFileInfo(fileName)
+                                                write.writeStringUtf8(result)
                                             }
                                             equals("pause") -> {
-
+                                                statusChangedEvent.onPause(socket)
+                                                continued = false
                                             }
                                             equals("resume") -> {
-
+                                                statusChangedEvent.onResume(socket)
                                             }
                                             equals("stop") -> {
-
+                                                statusChangedEvent.onStop(socket)
+                                                continued = false
                                             }
                                             equals("exit") -> {
                                                 println("Client disconnected")
@@ -73,8 +81,7 @@ object EchoApp {
                                                 continued = false
                                             }
                                             else -> {
-                                                println("Received: $result")
-                                                write.writeStringUtf8("Received: $result")
+                                                fileFunction.sendFile(socket, statusChangedEvent)
                                             }
 
                                         }

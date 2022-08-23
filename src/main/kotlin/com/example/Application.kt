@@ -8,10 +8,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 fun main() {
-    embeddedServer(Netty, port = BackendPort) {
+    embeddedServer(Netty, port = BackendPort){
         CoroutineScope(Dispatchers.IO).launch {
             configureSockets()
         }
-        configureRouting()
+        //configureRouting()
     }.start(wait = true)
 }
