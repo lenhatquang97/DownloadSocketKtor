@@ -45,10 +45,42 @@ object EchoApp {
                     launch {
                         val read = socket.openReadChannel()
                         val write = socket.openWriteChannel(autoFlush = true)
+                        var continued = true
                         try {
-                            while (true) {
-                                val line = read.readUTF8Line()
-                                write.writeStringUtf8("$line\n")
+                            while (continued) {
+                                val result = read.readUTF8Line()
+                                if(result != null){
+                                    with(result){
+                                        when{
+                                            contains("getFileInfo") ->{
+
+                                            }
+                                            contains("sendFile") -> {
+
+                                            }
+                                            equals("pause") -> {
+
+                                            }
+                                            equals("resume") -> {
+
+                                            }
+                                            equals("stop") -> {
+
+                                            }
+                                            equals("exit") -> {
+                                                println("Client disconnected")
+                                                socket.close()
+                                                continued = false
+                                            }
+                                            else -> {
+                                                println("Received: $result")
+                                                write.writeStringUtf8("Received: $result")
+                                            }
+
+                                        }
+                                    }
+                                }
+
                             }
                         } catch (e: Throwable) {
                             socket.close()
