@@ -12,6 +12,6 @@ fun main() {
         CoroutineScope(Dispatchers.IO).launch {
             configureSockets()
         }
-        //configureRouting()
+        configureRouting()
     }.start(wait = true)
 }

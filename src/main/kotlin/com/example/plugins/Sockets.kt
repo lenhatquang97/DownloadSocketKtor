@@ -19,7 +19,6 @@ import java.net.InetSocketAddress
 import java.net.Socket
 
 fun Application.configureSockets() {
-    val selectorManager = SelectorManager(Dispatchers.IO)
     EchoApp.Server.exposeIpAddress()
     EchoApp.Server.start()
 }
