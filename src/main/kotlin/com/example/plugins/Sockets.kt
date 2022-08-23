@@ -1,5 +1,6 @@
 package com.example.plugins
 
+import com.example.SocketPort
 import io.ktor.network.selector.*
 import io.ktor.network.sockets.*
 import io.ktor.utils.io.*
@@ -25,19 +26,19 @@ fun Application.configureSockets() {
  */
 object EchoApp {
     val selectorManager = ActorSelectorManager(Dispatchers.IO)
-    val DefaultPort = (System.getenv("PORT") ?: "23567").toInt()
 
     object Server {
+        //This function will only be used for getting machine's ip, not on VM
         fun exposeIpAddress(){
             Socket().use { socket ->
                 socket.connect(InetSocketAddress("google.com", 80))
-                println("Your address and port are ${socket.localAddress}")
+                println("Your address is ${socket.localAddress}")
             }
         }
         fun start() {
             runBlocking {
-                val serverSocket = aSocket(selectorManager).tcp().bind(port = DefaultPort)
-                println("Echo Server listening at ${serverSocket.localAddress}")
+                val serverSocket = aSocket(selectorManager).tcp().bind(port = SocketPort)
+                println("Socket Server listening at ${serverSocket.localAddress}")
                 while (true) {
                     val socket = serverSocket.accept()
                     println("Accepted ${socket.remoteAddress}")
