@@ -1,13 +1,14 @@
 package com.example.plugins
 
+import StatusChangesObj
+import com.example.DownloadState
 import com.example.FileFunction
 import com.example.SocketPort
-import io.ktor.network.selector.*
 import io.ktor.server.application.*
-import io.ktor.utils.io.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import org.json.JSONObject
 import java.io.DataInputStream
 import java.io.DataOutputStream
 import java.net.InetSocketAddress
@@ -18,6 +19,7 @@ fun Application.configureSockets() {
     DownloadUtility.Server.exposeIpAddress()
     DownloadUtility.Server.start()
 }
+
 object DownloadUtility {
     object Server {
         //This function will only be used for getting machine's ip, not on VM
@@ -32,7 +34,7 @@ object DownloadUtility {
             CoroutineScope(Dispatchers.IO).launch {
                 val serverSocket = ServerSocket(SocketPort)
                 println("Socket Server listening at ${serverSocket.localSocketAddress}")
-                println("-------------------------------------------------------")
+                println("-------------------------------------------------------------")
                 while (true) {
                     val socket = serverSocket.accept()
                     println("Accepted client: ${socket.remoteSocketAddress}")
@@ -43,42 +45,45 @@ object DownloadUtility {
                     try {
                         while (continued) {
                             val result = read.readLine()
-                            if (result != null) {
-                                println(result)
-                                with(result) {
-                                    when {
-                                        contains("Hello") -> println("Welcome to our server!!!")
-                                        contains("getFileInfo") -> {
-                                            val fileName = substringAfter("getFileInfo ")
-                                            val res = fileFunction.getFileInfo(fileName)
-                                            write.write("$res\n".toByteArray())
-                                        }
-                                        contains("sendFile") -> {
-                                            val fileName = substringAfter("sendFile ")
-                                            fileFunction.sendFile(socket, StatusChangesObj.statusChangedEvent,fileName,write)
-                                        }
-                                        equals("pause") -> {
-                                            StatusChangesObj.status = "pause"
-                                            StatusChangesObj.statusChangedEvent.onPause(socket)
-                                            continued = false
-                                        }
-                                        equals("resume") -> {
-                                            StatusChangesObj.status = "resume"
-                                            StatusChangesObj.statusChangedEvent.onResume(socket)
-                                        }
-                                        equals("stop") -> {
-                                            StatusChangesObj.status = "stop"
-                                            StatusChangesObj.statusChangedEvent.onStop(socket)
-                                            continued = false
-                                        }
-                                        equals("exit") -> {
-                                            println("Client disconnected")
-                                            socket.close()
-                                            continued = false
-                                        }
-                                        else -> {
-                                            println("Invalid command")
-                                        }
+                            val jsonObj = JSONObject(result)
+                            val command = jsonObj.getString("command")
+                            val content = jsonObj.getString("content")
+                            if (command != null) {
+                                when (command) {
+                                    "ping" -> println("Welcome to our server!!!")
+                                    "getFileInfo" -> {
+                                        val res = fileFunction.getFileInfo(content)
+                                        write.write("$res\n".toByteArray())
+                                    }
+                                    "sendFile" -> {
+                                        StatusChangesObj.status = DownloadState.DOWNLOADING
+                                        fileFunction.sendFile(socket, content, write)
+                                    }
+                                    "pause" -> {
+                                        StatusChangesObj.status = DownloadState.PAUSED
+                                        continued = false
+                                    }
+                                    "resume" -> {
+                                        val fileName = content.split("?")[0]
+                                        val bytesRemaining = content.split("?")[1].toLong()
+                                        StatusChangesObj.status = DownloadState.DOWNLOADING
+                                        fileFunction.sendFile(socket, fileName, write, bytesRemaining)
+                                    }
+                                    "stop" -> {
+                                        StatusChangesObj.status = DownloadState.STOPPED
+                                        continued = false
+                                    }
+                                    "exit" -> {
+                                        println("Client disconnected")
+                                        socket.close()
+                                        continued = false
+                                    }
+                                    "retry" -> {
+                                        StatusChangesObj.status = DownloadState.DOWNLOADING
+                                        fileFunction.sendFile(socket, content, write)
+                                    }
+                                    else -> {
+                                        println("Invalid command")
                                     }
                                 }
                             }

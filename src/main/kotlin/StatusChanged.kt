@@ -1,3 +1,4 @@
+import com.example.DownloadState
 import java.net.Socket
 
 interface StatusChanged {
@@ -7,25 +8,27 @@ interface StatusChanged {
     fun onResume(socket: Socket)
 }
 
-object StatusChangesObj{
-    var status = "Downloading"
+object StatusChangesObj {
+    var status = DownloadState.DOWNLOADING
     val statusChangedEvent = object : StatusChanged {
         override fun onStatusChanged(socket: Socket) {
-            when (status){
-                "pause" -> onPause(socket)
-                "stop" -> onStop(socket)
-                "resume" -> onResume(socket)
+            when (status) {
+                DownloadState.PAUSED -> onPause(socket)
+                DownloadState.STOPPED -> onStop(socket)
+                else -> {}
             }
         }
+
         override fun onPause(socket: Socket) {
             socket.close()
             //next step
         }
-        override fun onStop(socket: Socket) {
 
+        override fun onStop(socket: Socket) {
             socket.close()
             //next step
         }
+
         override fun onResume(socket: Socket) {
             //next step
         }
