@@ -75,8 +75,8 @@ object DownloadUtility {
                                     }
                                     "exit" -> {
                                         println("Client disconnected")
-                                        socket.close()
                                         continued = false
+                                        socket.close()
                                     }
                                     "retry" -> {
                                         StatusChangesObj.status = DownloadState.DOWNLOADING
