@@ -7,24 +7,27 @@ interface StatusChanged {
     fun onResume(socket: Socket)
 }
 
-var status = "Downloading"
-val statusChangedEvent = object : StatusChanged {
-    override fun onStatusChanged(socket: Socket) {
-        when (status){
-            "pause" -> onPause(socket)
-            "stop" -> onStop(socket)
-            "resume" -> onResume(socket)
+object StatusChangesObj{
+    var status = "Downloading"
+    val statusChangedEvent = object : StatusChanged {
+        override fun onStatusChanged(socket: Socket) {
+            when (status){
+                "pause" -> onPause(socket)
+                "stop" -> onStop(socket)
+                "resume" -> onResume(socket)
+            }
         }
-    }
-    override fun onPause(socket: Socket) {
-        socket.close()
-        //next step
-    }
-    override fun onStop(socket: Socket) {
-        socket.close()
-        //next step
-    }
-    override fun onResume(socket: Socket) {
-        //next step
+        override fun onPause(socket: Socket) {
+            socket.close()
+            //next step
+        }
+        override fun onStop(socket: Socket) {
+
+            socket.close()
+            //next step
+        }
+        override fun onResume(socket: Socket) {
+            //next step
+        }
     }
 }
