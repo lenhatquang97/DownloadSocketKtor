@@ -34,6 +34,7 @@ class FileFunction {
         var bytes = 0
         var fileSize = 0
         val file = File("files/$filePath")
+        println(filePath)
         println(file.exists())
         if (file.exists()) {
             val fileInputStream = RandomAccessFile(file, "rws")
