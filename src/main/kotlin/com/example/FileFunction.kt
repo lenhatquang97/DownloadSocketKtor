@@ -27,6 +27,7 @@ class FileFunction {
             put("fileSize", fileSize)
             put("fileName", fileName)
         }
+        println(obj.toString())
         return obj.toString()
     }
 

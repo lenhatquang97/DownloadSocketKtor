@@ -49,6 +49,7 @@ object DownloadUtility {
                             val command = jsonObj.getString("command")
                             val content = jsonObj.getString("content")
                             if (command != null) {
+                                println(command)
                                 when (command) {
                                     "ping" -> println("Welcome to our server!!!")
                                     "getFileInfo" -> {
