@@ -48,6 +48,7 @@ object DownloadUtility {
                             val jsonObj = JSONObject(result)
                             val command = jsonObj.getString("command")
                             val content = jsonObj.getString("content")
+                            println(result)
                             if (command != null) {
                                 println(command)
                                 when (command) {
