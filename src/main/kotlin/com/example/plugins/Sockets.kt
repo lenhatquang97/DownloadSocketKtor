@@ -5,9 +5,7 @@ import com.example.DownloadState
 import com.example.FileFunction
 import com.example.SocketPort
 import io.ktor.server.application.*
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import org.json.JSONObject
 import java.io.DataInputStream
 import java.io.DataOutputStream
@@ -31,72 +29,13 @@ object DownloadUtility {
         }
 
         fun start() {
-            CoroutineScope(Dispatchers.IO).launch {
-                val serverSocket = ServerSocket(SocketPort)
-                println("Socket Server listening at ${serverSocket.localSocketAddress}")
-                println("-------------------------------------------------------------")
-                while (true) {
-                    val socket = serverSocket.accept()
-                    println("Accepted client: ${socket.remoteSocketAddress}")
-                    val read = DataInputStream(socket.getInputStream())
-                    val write = DataOutputStream(socket.getOutputStream())
-                    val fileFunction = FileFunction(socket)
-                    var continued = true
-                    try {
-                        while (continued) {
-                            val result = read.readLine()
-                            val jsonObj = JSONObject(result)
-                            val command = jsonObj.getString("command")
-                            val content = jsonObj.getString("content")
-                            println(result)
-                            if (command != null) {
-                                println(command)
-                                when (command) {
-                                    "ping" -> println("Welcome to our server!!!")
-                                    "getFileInfo" -> {
-                                        val res = fileFunction.getFileInfo(content)
-                                        write.write("$res\n".toByteArray())
-                                    }
-                                    "sendFile" -> {
-                                        StatusChangesObj.status = DownloadState.DOWNLOADING
-                                        fileFunction.sendFile(socket, content, write)
-                                    }
-                                    "pause" -> {
-                                        StatusChangesObj.status = DownloadState.PAUSED
-                                        continued = false
-                                    }
-                                    "resume" -> {
-                                        val fileName = content.split("?")[0]
-                                        val bytesRemaining = content.split("?")[1].toLong()
-                                        StatusChangesObj.status = DownloadState.DOWNLOADING
-                                        fileFunction.sendFile(socket, fileName, write, bytesRemaining)
-                                    }
-                                    "stop" -> {
-                                        StatusChangesObj.status = DownloadState.STOPPED
-                                        continued = false
-                                    }
-                                    "exit" -> {
-                                        println("Client disconnected")
-                                        continued = false
-                                        socket.close()
-                                    }
-                                    "retry" -> {
-                                        StatusChangesObj.status = DownloadState.DOWNLOADING
-                                        fileFunction.sendFile(socket, content, write)
-                                    }
-                                    else -> {
-                                        println("Invalid command")
-                                    }
-                                }
-                            }
-
-                        }
-                    } catch (e: Throwable) {
-                        socket.close()
-                    }
-
-                }
+            val serverSocket = ServerSocket(SocketPort)
+            while (true) {
+                val socket = serverSocket.accept()
+                println("${socket.remoteSocketAddress} connected")
+                DownloadThread(socket).start()
             }
+
         }
     }
 }

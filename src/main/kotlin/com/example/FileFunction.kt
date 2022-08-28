@@ -7,6 +7,7 @@ import kotlinx.coroutines.launch
 import org.json.JSONObject
 import java.io.DataOutputStream
 import java.io.File
+import java.io.OutputStream
 import java.io.RandomAccessFile
 import java.net.Socket
 
@@ -31,7 +32,13 @@ class FileFunction {
         return obj.toString()
     }
 
-    fun sendFile(socket: Socket, filePath: String, fileOutputStream: DataOutputStream, bytesRemaining: Long = 0) {
+    fun sendFile(
+        socket: Socket,
+        filePath: String,
+        fileOutputStream: OutputStream,
+        onHandle: () -> Unit,
+        bytesRemaining: Long = 0
+    ) {
         var bytes = 0
         var fileSize = 0
         val file = File("files/$filePath")
@@ -55,6 +62,8 @@ class FileFunction {
                 fileInputStream.close()
                 fileOutputStream.close()
                 socket.close()
+                onHandle()
+
             }
 
         }

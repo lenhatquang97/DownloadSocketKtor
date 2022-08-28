@@ -1,5 +1,5 @@
 package com.example
 
 
-const val SocketPort = 23567
+const val SocketPort = 32587
 const val BackendPort = 25000
