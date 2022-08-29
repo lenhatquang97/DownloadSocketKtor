@@ -56,7 +56,7 @@ class FileFunction {
                     if (StatusChangesObj.statusTables[socket.remoteSocketAddress.toString()] != DownloadState.DOWNLOADING) break
                     fileOutputStream.write(buffer, 0, bytes)
                     fileSize += bytes
-//                    println(fileSize)
+                    println(fileSize)
                     fileOutputStream.flush()
                 }
                 fileInputStream.close()
