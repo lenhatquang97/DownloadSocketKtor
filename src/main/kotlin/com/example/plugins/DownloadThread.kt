@@ -20,10 +20,10 @@ class DownloadThread: Thread {
         val fileFunction = FileFunction(socket)
         while(true){
             try{
+                if(socket.isClosed) return
                 val result = bufferReader.readLine()
                 println("Waiting")
                 if(result == null || result.contains("exit")){
-                    socket.close()
                     println("Socket closed")
                     return
                 } else {
@@ -43,17 +43,18 @@ class DownloadThread: Thread {
                                 val onHandle: () -> Unit = {
                                     read.close()
                                     write.close()
+                                    socket.close()
                                 }
-                                StatusChangesObj.status = DownloadState.DOWNLOADING
+                                StatusChangesObj.statusTables[socket.remoteSocketAddress.toString()] = DownloadState.DOWNLOADING
                                 fileFunction.sendFile(socket, content, write, onHandle)
                             }
                             "pause" -> {
-                                StatusChangesObj.status = DownloadState.PAUSED
+                                StatusChangesObj.statusTables[socket.remoteSocketAddress.toString()] = DownloadState.PAUSED
                             }
                             "resume" -> {
                                 val fileName = content.split("?")[0]
                                 val bytesRemaining = content.split("?")[1].toLong()
-                                StatusChangesObj.status = DownloadState.DOWNLOADING
+                                StatusChangesObj.statusTables[socket.remoteSocketAddress.toString()] = DownloadState.DOWNLOADING
                                 val onHandle: () -> Unit = {
                                     read.close()
                                     write.close()
@@ -61,20 +62,20 @@ class DownloadThread: Thread {
                                 fileFunction.sendFile(socket, fileName, write, onHandle, bytesRemaining)
                             }
                             "stop" -> {
-                                StatusChangesObj.status = DownloadState.STOPPED
+                                StatusChangesObj.statusTables[socket.remoteSocketAddress.toString()] = DownloadState.STOPPED
                             }
                             "exit" -> {
                                 println("Client disconnected")
-                                socket.close()
                                 read.close()
                                 write.close()
+                                socket.close()
                             }
                             "retry" -> {
                                 val onHandle: () -> Unit = {
                                     read.close()
                                     write.close()
                                 }
-                                StatusChangesObj.status = DownloadState.DOWNLOADING
+                                StatusChangesObj.statusTables[socket.remoteSocketAddress.toString()] = DownloadState.DOWNLOADING
                                 fileFunction.sendFile(socket, content, write, onHandle)
                             }
                             else -> {

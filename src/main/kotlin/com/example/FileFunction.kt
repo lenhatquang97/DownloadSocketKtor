@@ -47,21 +47,20 @@ class FileFunction {
         if (file.exists()) {
             val fileInputStream = RandomAccessFile(file, "rws")
             val scope = CoroutineScope(Dispatchers.IO)
-            val buffer = ByteArray(4 * 1024)
+            val buffer = ByteArray(1024)
             if (bytesRemaining > 0) {
                 fileInputStream.seek(bytesRemaining)
             }
             scope.launch {
                 while (fileInputStream.read(buffer).also { bytes = it } > 0) {
-                    if (StatusChangesObj.status != DownloadState.DOWNLOADING) break
+                    if (StatusChangesObj.statusTables[socket.remoteSocketAddress.toString()] != DownloadState.DOWNLOADING) break
                     fileOutputStream.write(buffer, 0, bytes)
                     fileSize += bytes
-                    println(fileSize)
+//                    println(fileSize)
                     fileOutputStream.flush()
                 }
                 fileInputStream.close()
                 fileOutputStream.close()
-                socket.close()
                 onHandle()
 
             }

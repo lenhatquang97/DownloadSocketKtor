@@ -33,6 +33,7 @@ object DownloadUtility {
             while (true) {
                 val socket = serverSocket.accept()
                 println("${socket.remoteSocketAddress} connected")
+                StatusChangesObj.statusTables[socket.remoteSocketAddress.toString()] = DownloadState.DOWNLOADING
                 DownloadThread(socket).start()
             }
 
